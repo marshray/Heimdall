@@ -1,4 +1,5 @@
 /* Copyright (c) 2010-2011 Benjamin Dobell, Glass Echidna
+   Copyright (c) 2012 Marsh Ray
  
  Permission is hereby granted, free of charge, to any person obtaining a copy
  of this software and associated documentation files (the "Software"), to deal
@@ -21,12 +22,26 @@
 #ifndef BRIDGEMANAGER_H
 #define BRIDGEMANAGER_H
 
+#define GTP7510 1
+
+#if GTP7510
+
+//	I don't think this header is available on Win32
+#include <stdint.h>
+
+#else // of if GTP7510
+#endif // of else of if GTP7510
+
 // Heimdall
 #include "Heimdall.h"
 
 struct libusb_context;
 struct libusb_device;
 struct libusb_device_handle;
+#if GTP7510
+struct libusb_transfer;
+#else // of if GTP7510
+#endif // of else of if GTP7510
 
 namespace Heimdall
 {
@@ -74,7 +89,7 @@ namespace Heimdall
 			enum
 			{
 				kPidGalaxyS		    = 0x6601,
-				kPidGalaxyS2        = 0x685D,
+				kPidGalaxyS2        = 0x685D, // and GT-7510 Galaxy Tab 10.1
 				kPidDroidCharge     = 0x68C3
 			};
 
@@ -87,9 +102,41 @@ namespace Heimdall
 			libusb_context *libusbContext;
 			libusb_device_handle *deviceHandle;
 			libusb_device *heimdallDevice;
+
+#if GTP7510
+
+			int bInterfaceNumber_comm;
+			int bAlternateSetting_comm;
+			int bEndpointAddress_comm;
+
+			int bInterfaceNumber_data;
+			int bAlternateSetting_data;
+			int bEndpointAddress_data_in;
+			int bEndpointAddress_data_out;
+
+			//	True if we want to maintain an outstanding async bulk_in on the data_in endpoint.
+			bool want_outstanding_bulk_data_in;
+
+			//	Active outstanding async bulk_in on the data_in endpoint.
+			libusb_transfer * transfer_bulk_data_in;
+			uint8_t * buffer_bulk_data_in_b; // beginning of allocation
+			uint8_t * buffer_bulk_data_in_c; // beginning of unconsumed part
+			uint8_t * buffer_bulk_data_in_e; // end of valid data
+			uint8_t * buffer_bulk_data_in_z; // end of allocation
+
+			//	True if we want to maintain an outstanding interrupt transfer on the comm endpoint.
+			bool want_outstanding_intr_comm;
+
+			//	Active outstanding async interrupt transfer on the comm endpoint.
+			libusb_transfer * transfer_intr_comm;
+
+#else // of if GTP7510
+
 			int interfaceIndex;
 			int inEndpoint;
 			int outEndpoint;
+
+#endif // of else of if GTP7510
 
 			int communicationDelay;
 
@@ -99,10 +146,33 @@ namespace Heimdall
 
 #endif
 
-			bool CheckProtocol(void) const;
-			bool InitialiseProtocol(void) const;
+#if GTP7510
+
+			bool CheckProtocol(void);
+			bool ResetInterface();
+			bool InitialiseProtocol(void);
+
+			void perhaps_start_async_xfers();
+			//bool async_bulk_or_intr(bool b_not_i, uint8_t endpoint, unsigned length, unsigned req);
+
+			int get_cnt_bytes_avail_in();
+			int receive_data(uint8_t * dest, int minLength, int maxLength, int timeout);
+
+			void clear_received_data();
+
+#else // of if GTP7510
+
+			bool CheckProtocol(void);
+			bool InitialiseProtocol(void);
+
+#endif // of else of if GTP7510
 
 		public:
+
+#if GTP7510
+
+#else // of if GTP7510
+#endif // of else of if GTP7510
 
 			BridgeManager(bool verbose, int communicationDelay);
 			~BridgeManager();
@@ -110,24 +180,42 @@ namespace Heimdall
 			bool DetectDevice(void);
 			int Initialise(void);
 
-			bool BeginSession(void) const;
-			bool EndSession(bool reboot) const;
+#if GTP7510
 
-			bool SendPacket(OutboundPacket *packet, int timeout = 3000, bool retry = true) const;
-			bool ReceivePacket(InboundPacket *packet, int timeout = 3000, bool retry = true) const;
+			bool sync_control(
+				uint8_t bmRequestType, uint8_t bRequest, uint16_t wValue, uint16_t wIndex,
+				unsigned length, uint8_t * data, bool pipe_error_ok );
+//			bool async_bulk(uint8_t endpoint, unsigned length, unsigned req);
+//			bool async_interrupt(uint8_t endpoint, unsigned length, unsigned req);
 
-			bool RequestDeviceInfo(unsigned int request, int *result) const;
+#else // of if GTP7510
+#endif // of else of if GTP7510
 
-			bool SendPitFile(FILE *file) const;
-			int ReceivePitFile(unsigned char **pitBuffer) const;
+			bool BeginSession(void);
+			bool EndSession(bool reboot);
 
-			bool SendFile(FILE *file, int destination, int fileIdentifier = -1) const;
-			bool ReceiveDump(int chipType, int chipId, FILE *file) const;
+			bool SendPacket(OutboundPacket *packet, int timeout = 3000, bool retry = true);
+			bool ReceivePacket(InboundPacket *packet, int timeout = 3000, bool retry = true);
+
+			bool RequestDeviceInfo(unsigned int request, int *result);
+
+			bool SendPitFile(FILE *file);
+			int ReceivePitFile(unsigned char **pitBuffer);
+
+			bool SendFile(FILE *file, int destination, int fileIdentifier = -1);
+			bool ReceiveDump(int chipType, int chipId, FILE *file);
 
 			bool IsVerbose(void) const
 			{
 				return (verbose);
 			}
+
+#if GTP7510
+			//	These are public just so they can be called from some extern "C" code.
+			void xfer_async_bulk_data_in_complete(libusb_transfer * transfer);
+			void xfer_async_intr_comm_complete(libusb_transfer * transfer);
+#else // of if GTP7510
+#endif // of else of if GTP7510
 	};
 }
 

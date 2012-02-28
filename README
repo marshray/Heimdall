@@ -1,3 +1,24 @@
+
+This fork of Heimdall is intended to be temporary to add support for the
+Samsung Galaxy Tab 10.1 GT-P7510.
+
+My changes are released under the same license.
+
+This code is about as experimental as it can get.
+It likely breaks all the other devices that I don't have access to test with.
+
+The source code is a real mess of experimentation and refactoring at this point
+and probably doesn't even build except on Linux. Eventually, I'd like to get it
+into good enough shape for upstream.
+
+I don't recommend you flash your device with it unless you are equipped
+to recover such a bricked device via JTAG (or are exceptionally brave).
+
+Unfortunately, the flash dump capability seems to be disabled in these newer devices.
+Perhaps it just needs a different command.
+
+But I was able to retrieve my pit file with it, so that's progress.
+
 --------------------------------------------------------------------------------
 Heimdall (c) 2010-2011 Benjamin Dobell, Glass Echidna
 http://www.glassechidna.com.au/products/heimdall/
