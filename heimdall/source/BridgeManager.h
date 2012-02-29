@@ -115,20 +115,20 @@ namespace Heimdall
 			int bEndpointAddress_data_out;
 
 			//	True if we want to maintain an outstanding async bulk_in on the data_in endpoint.
-			bool want_outstanding_bulk_data_in;
+			bool bWantOutstanding_bulk_in;
 
 			//	Active outstanding async bulk_in on the data_in endpoint.
-			libusb_transfer * transfer_bulk_data_in;
-			uint8_t * buffer_bulk_data_in_b; // beginning of allocation
-			uint8_t * buffer_bulk_data_in_c; // beginning of unconsumed part
-			uint8_t * buffer_bulk_data_in_e; // end of valid data
-			uint8_t * buffer_bulk_data_in_z; // end of allocation
+			libusb_transfer * activeTransfer_bulk_in;
+			uint8_t * buffer_bulk_in_b; // beginning of allocation
+			uint8_t * buffer_bulk_in_c; // beginning of unconsumed part
+			uint8_t * buffer_bulk_in_e; // end of valid data
+			uint8_t * buffer_bulk_in_z; // end of allocation
 
 			//	True if we want to maintain an outstanding interrupt transfer on the comm endpoint.
-			bool want_outstanding_intr_comm;
+			bool bWantOutstanding_intr_comm;
 
 			//	Active outstanding async interrupt transfer on the comm endpoint.
-			libusb_transfer * transfer_intr_comm;
+			libusb_transfer * activeTransfer_intr_comm;
 
 #else // of if GTP7510
 
@@ -146,25 +146,19 @@ namespace Heimdall
 
 #endif
 
+			bool CheckProtocol(void);
+			bool InitialiseProtocol(void);
+			bool ResetInterface();
+
 #if GTP7510
 
-			bool CheckProtocol(void);
-			bool ResetInterface();
-			bool InitialiseProtocol(void);
+			void StartAsyncTransfers();
 
-			void perhaps_start_async_xfers();
-			//bool async_bulk_or_intr(bool b_not_i, uint8_t endpoint, unsigned length, unsigned req);
-
-			int get_cnt_bytes_avail_in();
-			int receive_data(uint8_t * dest, int minLength, int maxLength, int timeout);
-
-			void clear_received_data();
+			int GetCntBytesAvail_bulk_in();
+			int ReceiveData(uint8_t * dest, int minLength, int maxLength, int timeout);
+			void ClearReceivedData();
 
 #else // of if GTP7510
-
-			bool CheckProtocol(void);
-			bool InitialiseProtocol(void);
-
 #endif // of else of if GTP7510
 
 		public:
@@ -182,11 +176,9 @@ namespace Heimdall
 
 #if GTP7510
 
-			bool sync_control(
+			bool SyncTransfer_Control(
 				uint8_t bmRequestType, uint8_t bRequest, uint16_t wValue, uint16_t wIndex,
 				unsigned length, uint8_t * data, bool pipe_error_ok );
-//			bool async_bulk(uint8_t endpoint, unsigned length, unsigned req);
-//			bool async_interrupt(uint8_t endpoint, unsigned length, unsigned req);
 
 #else // of if GTP7510
 #endif // of else of if GTP7510
@@ -212,8 +204,8 @@ namespace Heimdall
 
 #if GTP7510
 			//	These are public just so they can be called from some extern "C" code.
-			void xfer_async_bulk_data_in_complete(libusb_transfer * transfer);
-			void xfer_async_intr_comm_complete(libusb_transfer * transfer);
+			void OnAsyncTransferComplete_Bulk_In(libusb_transfer * transfer);
+			void OnAsyncTransferComplete_Intr_Comm(libusb_transfer * transfer);
 #else // of if GTP7510
 #endif // of else of if GTP7510
 	};

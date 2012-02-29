@@ -19,24 +19,14 @@
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  THE SOFTWARE.*/
 
-#if GTP7510
+#define GTP7510 1
 
 // C Standard Library
 #include <assert.h>
 #include <stdio.h>
 
 // libusb
-#include <libusb-1.0/libusb.h>
-
-#else // of if GTP7510
-
-// C Standard Library
-#include <stdio.h>
-
-// libusb
 #include <libusb.h>
-
-#endif // of else of if GTP7510
 
 // Heimdall
 #include "BeginDumpPacket.h"
@@ -83,10 +73,10 @@ enum
 
 #if GTP7510
 
-static void logLibusbResult(int libusb_error_value)
+static void LogLibusbResult(int iLibusbErrorValue)
 {
 	char const * psz = 0;
-	switch (libusb_error_value)
+	switch (iLibusbErrorValue)
 	{
 	case LIBUSB_SUCCESS: psz = "LIBUSB_SUCCESS"; break;
 	case LIBUSB_ERROR_IO: psz = "LIBUSB_ERROR_IO"; break;
@@ -107,7 +97,7 @@ static void logLibusbResult(int libusb_error_value)
 	Interface::Print(psz);
 }
 
-static void logControlTransferResult(int rc)
+static void LogControlTransferResult(int rc)
 {
 	if (0 <= rc)
 		Interface::Print("OK (%d bytes transferred)\n", rc);
@@ -115,7 +105,7 @@ static void logControlTransferResult(int rc)
 		Interface::Print("EPIPE\n", rc);
 	else
 	{
-		logLibusbResult(rc);
+		LogLibusbResult(rc);
 		//char const * psz = "";
 		//switch (rc)
 		//{
@@ -146,10 +136,10 @@ bool BridgeManager::ResetInterface()
 					  LIBUSB_ENDPOINT_OUT // host-to-device
 					| LIBUSB_REQUEST_TYPE_STANDARD
 					| LIBUSB_RECIPIENT_ENDPOINT;
-//?				assert(bmRequestType == 0x02);
+				assert(bmRequestType == 0x02);
 
 				uint8_t bRequest = LIBUSB_REQUEST_CLEAR_FEATURE; // 0x01
-//?				assert(bRequest == 0x01);
+				assert(bRequest == 0x01);
 
 				uint16_t wValue = 0x0000; // feature selector ENDPOINT_HALT
 				uint16_t wIndex = bEndpointAddress; // endpoint
@@ -162,7 +152,7 @@ bool BridgeManager::ResetInterface()
 					Interface::Print("OK (%d bytes transferred)\n", rc);
 				else
 				{
-					logLibusbResult(rc);
+					LogLibusbResult(rc);
 					char const * psz = "";
 					switch (rc)
 					{
@@ -185,7 +175,7 @@ bool BridgeManager::ResetInterface()
 			  LIBUSB_ENDPOINT_OUT // host-to-device
 			| LIBUSB_REQUEST_TYPE_CLASS
 			| LIBUSB_RECIPIENT_INTERFACE;
-//?		assert(bmRequestType == 0x21);
+		assert(bmRequestType == 0x21);
 
 		uint8_t bRequest = 0x04; // CLEAR_COMM_FEATURE
 		uint16_t wValue = 0x0001; // wFeatureSelector ???
@@ -195,7 +185,7 @@ bool BridgeManager::ResetInterface()
 		unsigned int timeout = 0; // wait forever
 		int rc = libusb_control_transfer(
 			deviceHandle, bmRequestType, bRequest, wValue, wIndex, data, length, timeout);
-		logControlTransferResult(rc);
+		LogControlTransferResult(rc);
 		if (!(0 <= rc || rc == LIBUSB_ERROR_PIPE))
 			return false;
 	}
@@ -207,7 +197,7 @@ bool BridgeManager::ResetInterface()
 			  LIBUSB_ENDPOINT_IN // device-to-host
 			| LIBUSB_REQUEST_TYPE_CLASS
 			| LIBUSB_RECIPIENT_INTERFACE;
-//?		assert(bmRequestType == 0xa1);
+		assert(bmRequestType == 0xa1);
 
 		uint8_t bRequest = 0x03; // GET_COMM_FEATURE
 		uint16_t wValue = 0x0001; // wFeatureSelector ???
@@ -217,7 +207,7 @@ bool BridgeManager::ResetInterface()
 		unsigned int timeout = 0; // wait forever
 		int rc = libusb_control_transfer(
 			deviceHandle, bmRequestType, bRequest, wValue, wIndex, data, length, timeout);
-		logControlTransferResult(rc);
+		LogControlTransferResult(rc);
 		if (!(0 <= rc || rc == LIBUSB_ERROR_PIPE))
 			return false;
 	}
@@ -229,7 +219,7 @@ bool BridgeManager::ResetInterface()
 			  LIBUSB_ENDPOINT_OUT // host-to-device
 			| LIBUSB_REQUEST_TYPE_CLASS
 			| LIBUSB_RECIPIENT_INTERFACE;
-//?		assert(bmRequestType == 0x21);
+		assert(bmRequestType == 0x21);
 
 		uint8_t bRequest = 0x02; // SET_COMM_FEATURE
 		uint16_t wValue = 0x0001; // wFeatureSelector ???
@@ -239,7 +229,7 @@ bool BridgeManager::ResetInterface()
 		unsigned int timeout = 0; // wait forever
 		int rc = libusb_control_transfer(
 			deviceHandle, bmRequestType, bRequest, wValue, wIndex, data, length, timeout);
-		logControlTransferResult(rc);
+		LogControlTransferResult(rc);
 		if (!(0 <= rc || rc == LIBUSB_ERROR_PIPE))
 			return false;
 	}
@@ -251,7 +241,7 @@ bool BridgeManager::ResetInterface()
 			  LIBUSB_ENDPOINT_OUT // host-to-device
 			| LIBUSB_REQUEST_TYPE_CLASS
 			| LIBUSB_RECIPIENT_INTERFACE;
-//?		assert(bmRequestType == 0x21);
+		assert(bmRequestType == 0x21);
 
 		uint8_t bRequest = 34; // SET_CONTROL_LINE_STATE
 		uint16_t wValue = 0x0003; // wFeatureSelector ???
@@ -261,7 +251,7 @@ bool BridgeManager::ResetInterface()
 		unsigned int timeout = 0; // wait forever
 		int rc = libusb_control_transfer(
 			deviceHandle, bmRequestType, bRequest, wValue, wIndex, data, length, timeout);
-		logControlTransferResult(rc);
+		LogControlTransferResult(rc);
 		if (!(0 <= rc || rc == LIBUSB_ERROR_PIPE))
 			return false;
 	}
@@ -273,7 +263,7 @@ bool BridgeManager::ResetInterface()
 			  LIBUSB_ENDPOINT_IN // device-to-host
 			| LIBUSB_REQUEST_TYPE_CLASS
 			| LIBUSB_RECIPIENT_INTERFACE;
-//?		assert(bmRequestType == 0xa1);
+		assert(bmRequestType == 0xa1);
 
 		uint8_t bRequest = 0x21; // GET_LINE_CODING
 		uint16_t wValue = 0x0000; // wFeatureSelector ???
@@ -283,11 +273,12 @@ bool BridgeManager::ResetInterface()
 		unsigned int timeout = 0; // wait forever
 		int rc = libusb_control_transfer(
 			deviceHandle, bmRequestType, bRequest, wValue, wIndex, data, length, timeout);
-		logControlTransferResult(rc);
+		LogControlTransferResult(rc);
 		if (!(0 <= rc || rc == LIBUSB_ERROR_PIPE))
 			return false;
 	}
 
+//? TODO is this optional?
 //	Interface::Print("Setting up interface...\n");
 //	result = libusb_set_interface_alt_setting(deviceHandle, bInterfaceNumber_data, bAlternateSetting_data);
 //	if (result != LIBUSB_SUCCESS)
@@ -300,8 +291,8 @@ bool BridgeManager::ResetInterface()
 
 	//	odin3_1.85_win7_vm_recoveryflash.pcap frame 98
 	//	Ensure we're reading from the data_in endpoint.
-	want_outstanding_bulk_data_in = true;
-	perhaps_start_async_xfers();
+	bWantOutstanding_bulk_in = true;
+	StartAsyncTransfers();
 
 	//	odin3_1.85_win7_vm_recoveryflash.pcap frame 100
 	Interface::Print("GET_LINE_CODING . . . ");
@@ -310,13 +301,13 @@ bool BridgeManager::ResetInterface()
 			  LIBUSB_ENDPOINT_IN // device-to-host
 			| LIBUSB_REQUEST_TYPE_CLASS
 			| LIBUSB_RECIPIENT_INTERFACE;
-//?		assert(bmRequestType == 0xa1);
+		assert(bmRequestType == 0xa1);
 
 		uint8_t bRequest = 0x21; // GET_LINE_CODING
 		uint16_t wValue = 0x0000; // wFeatureSelector ???
 		uint16_t wIndex = 0; // ????
 
-		bool ok = sync_control(
+		bool ok = SyncTransfer_Control(
 			bmRequestType, bRequest, wValue, wIndex,
 			0, 0, // length, data
 			true ); // bool pipe_error_ok
@@ -328,8 +319,8 @@ bool BridgeManager::ResetInterface()
 	Interface::Print("INTERRUPT . . . ");
 	{
 		//	Ensure we're listening for interrupts on comm
-		want_outstanding_intr_comm = true;
-		perhaps_start_async_xfers();
+		bWantOutstanding_intr_comm = true;
+		StartAsyncTransfers();
 	}
 
 	//	odin3_1.85_win7_vm_recoveryflash.pcap frame 103
@@ -339,7 +330,7 @@ bool BridgeManager::ResetInterface()
 			  LIBUSB_ENDPOINT_OUT // host-to-device
 			| LIBUSB_REQUEST_TYPE_CLASS
 			| LIBUSB_RECIPIENT_INTERFACE;
-//?		assert(bmRequestType == 0x21);
+		assert(bmRequestType == 0x21);
 
 		uint8_t bRequest = 32; // ???
 		uint16_t wValue = 0x0000; // ????
@@ -347,7 +338,7 @@ bool BridgeManager::ResetInterface()
 		unsigned char data[7] = { 0x00, 0xc2, 0x01, 0x00, 0x00, 0x00, 0x00 }; //????
 		uint16_t length = sizeof(data);
 
-		bool ok = sync_control(
+		bool ok = SyncTransfer_Control(
 			bmRequestType, bRequest, wValue, wIndex, length, data,
 			true ); // bool pipe_error_ok
 		if (!ok)
@@ -362,7 +353,7 @@ bool BridgeManager::ResetInterface()
 		uint16_t wValue = 0x0003; // ???
 		uint16_t wIndex = 0; // ????
 
-		bool ok = sync_control(
+		bool ok = SyncTransfer_Control(
 			bmRequestType, bRequest, wValue, wIndex,
 			0, 0, // length, data
 			true ); // bool pipe_error_ok
@@ -378,7 +369,7 @@ bool BridgeManager::ResetInterface()
 		uint16_t wValue = 0x0002; // ???
 		uint16_t wIndex = 0; // ????
 
-		bool ok = sync_control(
+		bool ok = SyncTransfer_Control(
 			bmRequestType, bRequest, wValue, wIndex,
 			0, 0, // length, data
 			true ); // bool pipe_error_ok
@@ -393,7 +384,7 @@ bool BridgeManager::ResetInterface()
 			  LIBUSB_ENDPOINT_OUT // host-to-device
 			| LIBUSB_REQUEST_TYPE_CLASS
 			| LIBUSB_RECIPIENT_INTERFACE;
-//?		assert(bmRequestType == 0x21);
+		assert(bmRequestType == 0x21);
 
 		uint8_t bRequest = 32; // ???
 		uint16_t wValue = 0x0000; // ????
@@ -401,7 +392,7 @@ bool BridgeManager::ResetInterface()
 		unsigned char data[7] = { 0x00, 0xc2, 0x01, 0x00, 0x00, 0x00, 0x08 }; //????
 		uint16_t length = sizeof(data);
 
-		bool ok = sync_control(
+		bool ok = SyncTransfer_Control(
 			bmRequestType, bRequest, wValue, wIndex, length, data,
 			true ); // bool pipe_error_ok
 		if (!ok)
@@ -418,7 +409,7 @@ bool BridgeManager::ResetInterface()
 		if (rc)
 		{
 			Interface::Print("handle events: ");
-			logLibusbResult(rc);
+			LogLibusbResult(rc);
 			Interface::Print("\n");
 		}
 		::usleep(1000);
@@ -438,6 +429,7 @@ bool BridgeManager::CheckProtocol(void)
 
 #if 1
 
+	//? TODO get resumption to actually work
 	Interface::Print("... no not really.\n");
 	return false;
 
@@ -461,7 +453,9 @@ bool BridgeManager::CheckProtocol(void)
 		Interface::Print("Protocol is not initialised.\n");
 		return (false);
 	}
+
 #elif 0
+
 	//? this is a lame experiment
 	{
 		Interface::Print("Rebooting device...\n");
@@ -490,10 +484,10 @@ bool BridgeManager::CheckProtocol(void)
 		else
 		{
 			//	Sleep for a while, just polling the device while it reboots.
-			pps->clear_received_data();
+			pps->ClearReceivedData();
 			unsigned char dataBuffer[1];
-			pps->receive_data(dataBuffer, 1, 1, 10*1000);
-			pps->clear_received_data();
+			pps->ReceiveData(dataBuffer, 1, 1, 10*1000);
+			pps->ClearReceivedData();
 		}
 	}
 #elif 0
@@ -525,7 +519,7 @@ bool BridgeManager::CheckProtocol(void)
 
 #if GTP7510
 
-bool BridgeManager::sync_control(
+bool BridgeManager::SyncTransfer_Control(
 	uint8_t bmRequestType,
 	uint8_t bRequest,
 	uint16_t wValue,
@@ -546,7 +540,7 @@ bool BridgeManager::sync_control(
 	unsigned int timeout = 0; // wait forever
 	int rc = libusb_control_transfer(
 		deviceHandle, bmRequestType, bRequest, wValue, wIndex, data, length, timeout);
-	logControlTransferResult(rc);
+	LogControlTransferResult(rc);
 	delete data;
 	if (!(0 <= rc || pipe_error_ok && rc == LIBUSB_ERROR_PIPE))
 		return false;
@@ -554,67 +548,67 @@ bool BridgeManager::sync_control(
 	return true;
 }
 
-extern "C" void xfer_async_bulk_data_in_complete_c(libusb_transfer * transfer)
+extern "C" void ExtC_OnAsyncTransferComplete_Bulk_In(libusb_transfer * transfer)
 {
 	BridgeManager * pbm = static_cast<BridgeManager *>(transfer->user_data);
 	transfer->user_data = 0;
 
-	pbm->xfer_async_bulk_data_in_complete(transfer);
+	pbm->OnAsyncTransferComplete_Bulk_In(transfer);
 }
 
-void BridgeManager::xfer_async_bulk_data_in_complete(libusb_transfer * transfer)
+void BridgeManager::OnAsyncTransferComplete_Bulk_In(libusb_transfer * transfer)
 {
-	//Interface::Print("xfer_async_bulk_data_in_complete received %d bytes\n", transfer->actual_length);
+	//Interface::Print("OnAsyncTransferComplete_Bulk_In received %d bytes\n", transfer->actual_length);
 
 	//	Append the data.
-//?	assert(transfer->actual_length <= buffer_bulk_data_in_z - buffer_bulk_data_in_e);
-	buffer_bulk_data_in_e += transfer->actual_length;
+	assert(transfer->actual_length <= buffer_bulk_in_z - buffer_bulk_in_e);
+	buffer_bulk_in_e += transfer->actual_length;
 
 	//	libusb should free this for us
-	transfer_bulk_data_in = 0;
+	activeTransfer_bulk_in = 0;
 
 	//	Restart the transfer.
-	perhaps_start_async_xfers();
+	StartAsyncTransfers();
 }
 
-extern "C" void xfer_async_intr_comm_complete_c(libusb_transfer * transfer)
+extern "C" void ExtC_OnAsyncTransferComplete_Intr_Comm(libusb_transfer * transfer)
 {
 	BridgeManager * pbm = static_cast<BridgeManager *>(transfer->user_data);
 	transfer->user_data = 0;
 
-	pbm->xfer_async_intr_comm_complete(transfer);
+	pbm->OnAsyncTransferComplete_Intr_Comm(transfer);
 }
 
-void BridgeManager::xfer_async_intr_comm_complete(libusb_transfer * transfer)
+void BridgeManager::OnAsyncTransferComplete_Intr_Comm(libusb_transfer * transfer)
 {
-	//Interface::Print("xfer_async_intr_comm_complete!\n");
+	//Interface::Print("OnAsyncTransferComplete_Intr_Comm!\n");
 
 	// What to do here?
-//?	assert(transfer->actual_length == 0);
+	assert(transfer->actual_length == 0);
 
 	//	libusb should free this for us
-	transfer_intr_comm = 0;
+	activeTransfer_intr_comm = 0;
 
 	//	Restart the transfer.
-	perhaps_start_async_xfers();
+	StartAsyncTransfers();
 }
 
-int BridgeManager::get_cnt_bytes_avail_in()
+int BridgeManager::GetCntBytesAvail_bulk_in()
 {
 	int cb = 0;
 
-	if (buffer_bulk_data_in_b)
-		cb  = buffer_bulk_data_in_e - buffer_bulk_data_in_c;
+	if (buffer_bulk_in_b)
+		cb  = buffer_bulk_in_e - buffer_bulk_in_c;
 
 	return cb;
 }
 
-void BridgeManager::perhaps_start_async_xfers()
+void BridgeManager::StartAsyncTransfers()
 {
 	for (unsigned b_not_i = 0; b_not_i < 2; ++b_not_i)
 	{
-		bool              & want          = b_not_i ? want_outstanding_bulk_data_in : want_outstanding_intr_comm;
-		libusb_transfer * & this_transfer = b_not_i ? transfer_bulk_data_in : transfer_intr_comm;
+		bool                want          = b_not_i ? bWantOutstanding_bulk_in : bWantOutstanding_intr_comm;
+		libusb_transfer * & this_transfer = b_not_i ? activeTransfer_bulk_in   : activeTransfer_intr_comm;
 
 		if (want && !this_transfer)
 		{
@@ -630,10 +624,10 @@ void BridgeManager::perhaps_start_async_xfers()
 			//	length,
 			//	((endpoint >> 7) & 1) ? "in" : "out" );
 
-			unsigned char * * const buffer_b = b_not_i ? &buffer_bulk_data_in_b : 0;
-			unsigned char * * const buffer_c = b_not_i ? &buffer_bulk_data_in_c : 0;
-			unsigned char * * const buffer_e = b_not_i ? &buffer_bulk_data_in_e : 0;
-			unsigned char * * const buffer_z = b_not_i ? &buffer_bulk_data_in_z : 0;
+			uint8_t * * const buffer_b = b_not_i ? &buffer_bulk_in_b : 0;
+			uint8_t * * const buffer_c = b_not_i ? &buffer_bulk_in_c : 0;
+			uint8_t * * const buffer_e = b_not_i ? &buffer_bulk_in_e : 0;
+			uint8_t * * const buffer_z = b_not_i ? &buffer_bulk_in_z : 0;
 
 			//? TODO find out the max ODIN packet size.
 			static int const cnt_bytes_max_packet = 32*1024;
@@ -641,7 +635,7 @@ void BridgeManager::perhaps_start_async_xfers()
 			{
 				if (!*buffer_b)
 				{
-					*buffer_b = new unsigned char[cnt_bytes_max_packet*2];
+					*buffer_b = new uint8_t[cnt_bytes_max_packet*2];
 					*buffer_c = *buffer_b;
 					*buffer_e = *buffer_b;
 					*buffer_z = *buffer_b + length;
@@ -662,7 +656,7 @@ void BridgeManager::perhaps_start_async_xfers()
 					//	Double the size of the allocation.
 					size_t cnt_copy = *buffer_e - *buffer_c;
 					size_t cnt_alloc = cnt_copy + length + cnt_bytes_max_packet*2;
-					unsigned char * b2 = new unsigned char[cnt_alloc];
+					uint8_t * b2 = new uint8_t[cnt_alloc];
 					if (cnt_copy)
 						memcpy(b2, *buffer_c, cnt_copy);
 					delete *buffer_b;
@@ -680,9 +674,12 @@ void BridgeManager::perhaps_start_async_xfers()
 				return;
 			}
 
-			libusb_transfer_cb_fn callback = b_not_i ? xfer_async_bulk_data_in_complete_c : xfer_async_intr_comm_complete_c;
+			libusb_transfer_cb_fn callback =
+				  b_not_i
+				? ExtC_OnAsyncTransferComplete_Bulk_In
+				: ExtC_OnAsyncTransferComplete_Intr_Comm;
 
-			unsigned char * buffer = length ? *buffer_e : 0;
+			uint8_t * buffer = length ? *buffer_e : 0;
 
 			(b_not_i ? libusb_fill_bulk_transfer : libusb_fill_interrupt_transfer)( // void
 				transfer,      // struct libusb_transfer * transfer
@@ -699,7 +696,7 @@ void BridgeManager::perhaps_start_async_xfers()
 			int rc = libusb_submit_transfer(transfer);
 			if (!(0 == rc))
 			{
-				logLibusbResult(rc);
+				LogLibusbResult(rc);
 				libusb_free_transfer(transfer);
 			}
 			else
@@ -723,7 +720,7 @@ bool BridgeManager::InitialiseProtocol(void)
 	if (!ResetInterface())
 		return false;
 
-	unsigned char *dataBuffer = new unsigned char[7];
+	uint8_t * dataBuffer = new uint8_t[7];
 
 	Interface::Print("Handshaking with Loke...\n");
 
@@ -759,7 +756,7 @@ bool BridgeManager::InitialiseProtocol(void)
 
 	memset(dataBuffer, 0, 7);
 
-	dataTransferred = receive_data(dataBuffer, 4, 4, 3000);
+	dataTransferred = ReceiveData(dataBuffer, 4, 4, 3000);
 
 //	result = libusb_bulk_transfer(deviceHandle, bEndpointAddress_data_in, dataBuffer, 7, &dataTransferred, 1000);
 //	if (result < 0)
@@ -933,14 +930,14 @@ BridgeManager::BridgeManager(bool verbose, int communicationDelay)
 	bEndpointAddress_data_in = -1;
 	bEndpointAddress_data_out = -1;
 
-	want_outstanding_bulk_data_in = false;
-	transfer_bulk_data_in = 0;
-	buffer_bulk_data_in_b = 0;
-	buffer_bulk_data_in_c = 0;
-	buffer_bulk_data_in_e = 0;
-	buffer_bulk_data_in_z = 0;
-	want_outstanding_intr_comm = false;
-	transfer_intr_comm = 0;
+	bWantOutstanding_bulk_in = false;
+	activeTransfer_bulk_in = 0;
+	buffer_bulk_in_b = 0;
+	buffer_bulk_in_c = 0;
+	buffer_bulk_in_e = 0;
+	buffer_bulk_in_z = 0;
+	bWantOutstanding_intr_comm = false;
+	activeTransfer_intr_comm = 0;
 
 #else // of if GTP7510
 
@@ -961,13 +958,13 @@ BridgeManager::~BridgeManager()
 {
 #if GTP7510
 
-	if (transfer_bulk_data_in)
-		libusb_free_transfer(transfer_bulk_data_in);
+	if (activeTransfer_bulk_in)
+		libusb_free_transfer(activeTransfer_bulk_in);
 
-	if (transfer_intr_comm)
-		libusb_free_transfer(transfer_intr_comm);
+	if (activeTransfer_intr_comm)
+		libusb_free_transfer(activeTransfer_intr_comm);
 
-	delete buffer_bulk_data_in_b;
+	delete buffer_bulk_in_b;
 
 	if (bInterfaceNumber_data >= 0)
 		libusb_release_interface(deviceHandle, bInterfaceNumber_data);
@@ -1075,7 +1072,8 @@ int BridgeManager::Initialise(void)
 
 			for (int i = 0; i < BridgeManager::kSupportedDeviceCount; i++)
 			{
-				if (descriptor.idVendor == supportedDevices[i].vendorId && descriptor.idProduct == supportedDevices[i].productId)
+				if (    descriptor.idVendor == supportedDevices[i].vendorId
+				     && descriptor.idProduct == supportedDevices[i].productId )
 				{
 					heimdallDevice = devices[deviceIndex];
 					libusb_ref_device(heimdallDevice);
@@ -1114,7 +1112,7 @@ int BridgeManager::Initialise(void)
 		result = libusb_reset_device(deviceHandle);
 		if (result != LIBUSB_SUCCESS)
 		{
-			logLibusbResult(result);
+			LogLibusbResult(result);
 			Interface::PrintError("\n");
 			return (BridgeManager::kInitialiseFailed);
 		}
@@ -1127,7 +1125,7 @@ int BridgeManager::Initialise(void)
 		result = libusb_get_device_descriptor(heimdallDevice, &deviceDescriptor);
 		if (result != LIBUSB_SUCCESS)
 		{
-			logLibusbResult(result);
+			LogLibusbResult(result);
 			Interface::PrintError(" - Failed to retrieve device description\n");
 			return (BridgeManager::kInitialiseFailed);
 		}
@@ -1136,7 +1134,7 @@ int BridgeManager::Initialise(void)
 
 	if (verbose)
 	{
-		unsigned char stringBuffer[128];
+		uint8_t stringBuffer[128];
 
 		if (libusb_get_string_descriptor_ascii(deviceHandle, deviceDescriptor.iManufacturer,
 			stringBuffer, 128) >= 0)
@@ -1181,7 +1179,6 @@ int BridgeManager::Initialise(void)
 		if (verbose)
 			Interface::Print("\n");
 
-#if 0 // WTF?! assert() BridgeManager.cpp|684| error: ‘assert’ was not declared in this scope
 		assert(bInterfaceNumber_comm < 0);
 		assert(bAlternateSetting_comm < 0);
 		assert(bEndpointAddress_comm < 0);
@@ -1189,7 +1186,6 @@ int BridgeManager::Initialise(void)
 		assert(bAlternateSetting_data < 0);
 		assert(bEndpointAddress_data_in < 0);
 		assert(bEndpointAddress_data_out < 0);
-#endif
 
 		Interface::Print("Examining device interfaces.\n");
 
@@ -1344,7 +1340,7 @@ int BridgeManager::Initialise(void)
 
 			if (result != LIBUSB_SUCCESS) // LIBUSB_ERROR_BUSY seen in practice
 			{
-				logLibusbResult(result);
+				LogLibusbResult(result);
 				Interface::Print("\n");
 
 				Interface::Print("Detaching kernel driver . . . ");
@@ -1359,7 +1355,7 @@ int BridgeManager::Initialise(void)
 
 			if (result != LIBUSB_SUCCESS)
 			{
-				logLibusbResult(result);
+				LogLibusbResult(result);
 				Interface::PrintError("\n");
 				return (BridgeManager::kInitialiseFailed);
 			}
@@ -1444,7 +1440,7 @@ int BridgeManager::Initialise(void)
 
 	if (verbose)
 	{
-		unsigned char stringBuffer[128];
+		uint8_t stringBuffer[128];
 
 		if (libusb_get_string_descriptor_ascii(deviceHandle, deviceDescriptor.iManufacturer,
 			stringBuffer, 128) >= 0)
@@ -1760,14 +1756,14 @@ bool BridgeManager::SendPacket(OutboundPacket *packet, int timeout, bool retry)
 
 #if GTP7510
 
-int BridgeManager::receive_data(unsigned char * dest, int minLength, int maxLength, int timeout)
+int BridgeManager::ReceiveData(unsigned char * dest, int minLength, int maxLength, int timeout)
 {
 	//	Process libusb events.
 	//	Ideally this would be based around a filehandle select/poll loop.
 	timespec ts_0;
 	clock_gettime(CLOCK_REALTIME, &ts_0);
 
-	while (get_cnt_bytes_avail_in() < minLength)
+	while (GetCntBytesAvail_bulk_in() < minLength)
 	{
 		//	See if we've waited long enough.
 		{
@@ -1792,17 +1788,17 @@ int BridgeManager::receive_data(unsigned char * dest, int minLength, int maxLeng
 		if (LIBUSB_SUCCESS != rc)
 		{
 			Interface::Print("handle events: ");
-			logLibusbResult(rc);
+			LogLibusbResult(rc);
 			Interface::Print("\n");
 		}
 	}
 
-	int avail = get_cnt_bytes_avail_in();
+	int avail = GetCntBytesAvail_bulk_in();
 	if (minLength <= avail)
 	{
 		int cntCopy = std::min<int>(avail, maxLength);
-		memcpy(dest, buffer_bulk_data_in_c, cntCopy);
-		buffer_bulk_data_in_c += cntCopy;
+		memcpy(dest, buffer_bulk_in_c, cntCopy);
+		buffer_bulk_in_c += cntCopy;
 		return cntCopy;
 	}
 	else
@@ -1813,9 +1809,9 @@ int BridgeManager::receive_data(unsigned char * dest, int minLength, int maxLeng
 	}
 }
 
-void BridgeManager::clear_received_data()
+void BridgeManager::ClearReceivedData()
 {
-	buffer_bulk_data_in_c = buffer_bulk_data_in_e;
+	buffer_bulk_in_c = buffer_bulk_in_e;
 }
 
 #else // of if GTP7510
@@ -1829,16 +1825,12 @@ bool BridgeManager::ReceivePacket(InboundPacket *packet, int timeout, bool retry
 
 	int dataTransferred = 0;
 
-#if 1
-#elif 0 //? WTF assert?
 	assert(packet->GetSize());
-#elif 0
-#endif
 
 	int minLength = packet->IsSizeVariable() ? 1 : packet->GetSize();
 	int maxLength = packet->GetSize();
 
-	dataTransferred = receive_data(packet->GetData(), minLength, maxLength, timeout);
+	dataTransferred = ReceiveData(packet->GetData(), minLength, maxLength, timeout);
 
 	if (dataTransferred != packet->GetSize() && !packet->IsSizeVariable())
 		return (false);
@@ -1888,6 +1880,7 @@ bool BridgeManager::ReceivePacket(InboundPacket *packet, int timeout, bool retry
 
 	if (result < 0 || (dataTransferred != packet->GetSize() && !packet->IsSizeVariable()))
 		return (false);
+
 #endif // of else of if GTP7510
 
 	packet->SetReceivedSize(dataTransferred);
