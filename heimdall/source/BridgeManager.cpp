@@ -58,6 +58,17 @@
 
 #define CLASS_CDC 0x0A
 
+#include <time.h>
+#include <sys/time.h>
+
+
+#ifdef __MACH__
+#include <mach/clock.h>
+#include <mach/mach.h>
+#endif
+
+
+
 using namespace Heimdall;
 
 const DeviceIdentifier BridgeManager::supportedDevices[BridgeManager::kSupportedDeviceCount] = {
@@ -1760,15 +1771,41 @@ int BridgeManager::ReceiveData(unsigned char * dest, int minLength, int maxLengt
 {
 	//	Process libusb events.
 	//	Ideally this would be based around a filehandle select/poll loop.
-	timespec ts_0;
-	clock_gettime(CLOCK_REALTIME, &ts_0);
+	
+	struct timespec ts;
+	
+  #ifdef __MACH__
+  clock_serv_t cclock;
+  mach_timespec_t mts;
+  host_get_clock_service(mach_host_self(), CALENDAR_CLOCK, &cclock);
+  clock_get_time(cclock, &mts);
+  mach_port_deallocate(mach_task_self(), cclock);
+  ts.tv_sec = mts.tv_sec;
+  ts.tv_nsec = mts.tv_nsec;
+  #else
+  clock_gettime(CLOCK_REALTIME, &ts);
+  #endif
 
 	while (GetCntBytesAvail_bulk_in() < minLength)
 	{
 		//	See if we've waited long enough.
 		{
-			timespec ts;
-			clock_gettime(CLOCK_REALTIME, &ts);
+      
+    	struct timespec ts_0;
+
+      #ifdef __MACH__
+      clock_serv_t cclock;
+      mach_timespec_t mts;
+      host_get_clock_service(mach_host_self(), CALENDAR_CLOCK, &cclock);
+      clock_get_time(cclock, &mts);
+      mach_port_deallocate(mach_task_self(), cclock);
+      ts_0.tv_sec = mts.tv_sec;
+      ts_0.tv_nsec = mts.tv_nsec;
+      #else
+      clock_gettime(CLOCK_REALTIME, &ts_0);
+      #endif
+      
+      
 			long sec = ts.tv_sec - ts_0.tv_sec;
 			long msec = sec*1000;
 			msec += ts.tv_nsec/1000/1000;
