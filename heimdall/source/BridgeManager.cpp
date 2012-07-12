@@ -1772,7 +1772,7 @@ int BridgeManager::ReceiveData(unsigned char * dest, int minLength, int maxLengt
 	//	Process libusb events.
 	//	Ideally this would be based around a filehandle select/poll loop.
 	
-	struct timespec ts;
+	struct timespec ts_0;
 	
   #ifdef __MACH__
   clock_serv_t cclock;
@@ -1780,10 +1780,10 @@ int BridgeManager::ReceiveData(unsigned char * dest, int minLength, int maxLengt
   host_get_clock_service(mach_host_self(), CALENDAR_CLOCK, &cclock);
   clock_get_time(cclock, &mts);
   mach_port_deallocate(mach_task_self(), cclock);
-  ts.tv_sec = mts.tv_sec;
-  ts.tv_nsec = mts.tv_nsec;
+  ts_0.tv_sec = mts.tv_sec;
+  ts_0.tv_nsec = mts.tv_nsec;
   #else
-  clock_gettime(CLOCK_REALTIME, &ts);
+  clock_gettime(CLOCK_REALTIME, &ts_0);
   #endif
 
 	while (GetCntBytesAvail_bulk_in() < minLength)
@@ -1791,7 +1791,7 @@ int BridgeManager::ReceiveData(unsigned char * dest, int minLength, int maxLengt
 		//	See if we've waited long enough.
 		{
       
-    	struct timespec ts_0;
+    	struct timespec ts;
 
       #ifdef __MACH__
       clock_serv_t cclock;
@@ -1799,10 +1799,10 @@ int BridgeManager::ReceiveData(unsigned char * dest, int minLength, int maxLengt
       host_get_clock_service(mach_host_self(), CALENDAR_CLOCK, &cclock);
       clock_get_time(cclock, &mts);
       mach_port_deallocate(mach_task_self(), cclock);
-      ts_0.tv_sec = mts.tv_sec;
-      ts_0.tv_nsec = mts.tv_nsec;
+      ts.tv_sec = mts.tv_sec;
+      ts.tv_nsec = mts.tv_nsec;
       #else
-      clock_gettime(CLOCK_REALTIME, &ts_0);
+      clock_gettime(CLOCK_REALTIME, &ts);
       #endif
       
       
