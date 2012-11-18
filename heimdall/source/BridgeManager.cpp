@@ -1621,10 +1621,15 @@ bool BridgeManager::BeginSession(void)
 
 	int deviceType = setupSessionResponse.GetUnknown();
 
-	// TODO: Work out what this value is... it has been either 180 or 0 for Galaxy S phones, 3 on the Galaxy Tab, 190 for SHW-M110S.
-	if (deviceType != 180 && deviceType != 0 && deviceType != 3 && deviceType != 190)
+	/* TODO: Work out what this value is...
+	 * it has been either 180 or 0 for Galaxy S phones,
+	 * 3 on the Galaxy Tab,
+	 * 30 on T-Mobile Galaxy S II (SGH-T989),
+	 * 190 for SHW-M110S. */
+
+	if (deviceType != 180 && deviceType != 0 && deviceType != 3 && deviceType != 30 && deviceType != 190)
 	{
-		Interface::PrintError("Unexpected device info response!\nExpected: 180, 0 or 3\nReceived:%d\n", deviceType);
+		Interface::PrintError("Unexpected device info response!\nExpected: 180, 0, 3, 30, or 190\nReceived:%d\n", deviceType);
 		return (false);
 	}
 	else
